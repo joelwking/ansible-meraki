@@ -1,0 +1,38 @@
+#!/usr/bin/ansible-playbook
+---
+#
+#      meraki_gather_facts.yml
+#
+#      This playbook demonstates how to use the meraki_facts.py module
+#
+#      Copyright (c) 2016 World Wide Technology, Inc.
+#      All rights reserved.
+#
+#      author: Joel W. King,  World Wide Technology
+#
+#
+- hosts: meraki_dashboard
+  connection: local
+  user: administrator
+
+  vars:
+    dashboard: "{{inventory_hostname}}"
+    spark_room: Teleworker
+
+  tasks:
+  #
+  - name: Decrypt the password file the API key is encrypted in this file
+    include_vars: "./passwords.yml"
+
+  - name: gather facts about the cloud
+    meraki_facts:
+      dashboard: "{{dashboard}}"
+      apikey: "{{meraki_params.apikey}}"
+      timespan: 1200
+      search_string: "WIZ"
+
+  - name: debug the output
+    debug: msg="{{item.client.ip}}"
+    with_items: 
+      -   "{{meraki}}"
+

@@ -1,0 +1,116 @@
+#!/usr/bin/ansible-playbook
+---
+#
+#      Meraki provisioning playbook
+#
+#      This playbook is to visualize the workflow, Meraki modules which would need to be developed
+#      and other Ansible modules which would be used to automate the provisioning of Meraki 
+#      Teleworker devices.
+#
+#      Copyright (c) 2016 World Wide Technology, Inc.
+#      All rights reserved.
+#
+#      author: Joel W. King,  World Wide Technology
+#
+#
+- hosts: dashboard.meraki.com
+  connection: local
+  user: administrator
+
+  vars:
+    dashboard: "{{inventory_hostname}}"
+    spark_room: Teleworker
+
+
+  tasks:
+  #
+  #  Include variables to the play, variables can come from many sources.
+  #
+  - name: Decrypt the password file the API key is encrypted in this file
+    include_vars: "./passwords.yml"
+
+  - name: Get facts (variables) from CSV file
+    csv_to_facts:
+      src: ./files/meraki.csv
+
+  - name: Download variables from git or other web service
+      uri:
+        method: GET
+        url: "{{url}}"
+        dest: "{{dest}}"
+        validate_certs: no
+
+  - name: include variables downloaded in last step
+      include_vars: "{{dest}}"
+
+  #
+  #  IP Address Management
+  #
+  - name: Integrate with Infoblox
+    debug: msg="https://github.com/xoanmi/ansible-module-infoblox"
+
+  #
+  # Manage the Meraki device
+  #
+  - name: network management
+    meraki_networks:
+      dashboard: "{{dashboard}}"
+      api_key: "{{password}}"
+      organization: "{{org_id}}"           # Organization ID
+      network: networkid                   # Needed for network management
+      action: create                       # Update, create, delete, bind, unbind
+      name: networkname                    # Name of the network
+      tz: timezone
+      tags: tags
+      type: type
+      template: foo                        # The ID of the template 
+      autobind: no
+
+  - name: VPN management
+    meraki_vpn:
+      network: networkid                   # Needed for network management
+      mode: spoke                          # hub or spoke, none
+      hubs:                                # list of hubs and if using default route
+        - {hubId: hubId, useDefaultRoute: yes}
+        - {hubId: hubId, useDefaultRoute: yes}
+      subnets:                             # list of subnets
+        - {localSubnet: "192.168.1.0/24", useVpn: true}
+        - {localSubnet: "192.168.2.0/24", useVpn: false}
+
+  - name: device management
+    meraki_devices:
+      dashboard: "{{dashboard}}"
+      api_key: "{{password}}"
+      network: networkid                   # Needed for device management
+      action: claim                        # claim, update, remove
+      serial: 123456                       # Serial Number when claiming, updating or removing devices
+      name:  XYX                           # name of a device
+      tags:  my_tags                       # tags of a device
+      lat:   71                            # latitude
+      lng:   72                            # longitude
+      address: "123 Main, AnyTown, ME"     # location, street address
+
+  - name: manage vlans
+    meraki_vlan:
+      dashboard: "{{dashboard}}"
+      api_key: "{{password}}"
+      network: networkid                   # Networkid
+      action: add                          # add, delete update
+      network: SWISSWOOD                   # Name of the network
+      vlan: 1492                           # VLAN number         
+
+  #
+  # Notification step, could also send a formatted email
+  #
+  - name: Add the Teleworker to a room
+    spark_room:
+      room: "{{spark_room}}"
+      members: "{{telworker.email}}"
+      token: "{{spark_token}}"
+
+  - name: Send message to spark room
+    spark_room:
+      text: "Send a message and optionally the values of variables to the room {{spark_room}}"
+      filename: "http://static.techfieldday.com/wp-content/uploads/2015/10/F5-Logo-Full-Color-png_0-130x130.png"
+      room: "{{spark_room}}"
+      token: "{{spark_token}}"
