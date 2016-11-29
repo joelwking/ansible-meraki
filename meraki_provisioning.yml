@@ -97,7 +97,9 @@
       network: networkid                   # Networkid
       action: add                          # add, delete update
       network: SWISSWOOD                   # Name of the network
-      vlan: 1492                           # VLAN number         
+      vlan: 1492                           # VLAN number
+      applianceip: 192.0.2.1               # Default Gateway IP address
+      subnet: 192.0.2.0/24                 # Layer 3 network address of the VLAN
 
   #
   # Notification step, could also send a formatted email

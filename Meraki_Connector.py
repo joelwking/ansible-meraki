@@ -90,8 +90,32 @@ class Connector(object):
         return None
 
     def get_status(self):
-        "et the current status, return either APP_SUCCESS or APP_ERROR"
+        "get the current status, return either APP_SUCCESS or APP_ERROR"
         return self.app_run_status
+
+    def get_last_status_code(self):
+        "return the most recent status code"
+        return self.status_codes[-1]
+
+    def get_network_id(self, list_of_networks, network_name):
+        """
+        A query to get_networks returns a list of configured networks.
+        This routine returns the network 'id' for a given network 'name', or None
+        """
+        for network in list_of_networks:
+            if network_name == network['name']:
+                return network['id']
+        return None
+
+    def get_org_id(self, list_of_orgs, org_name):
+        """
+        A query to get_org_ids returns a list of the orgizations managed by this administrator
+        This routine returns the org 'id' for a given org 'name', or None
+        """
+        for org in list_of_orgs:
+            if org_name == org['name']:
+                return org['id']
+        return None
 
     def set_parameters(self, **kwargs):
         " If the parameters is an empty dictionary, use the default values."
@@ -134,7 +158,6 @@ class Connector(object):
         Match the search string against the client MAC and description, if there is a match return a dictionary to add to
         the Action Result data field. A search string of "*" means to return everything.
         """
-
         self.debug_print("%s BUILD_OUTPUT_RECORD for: %s %s %s" % (Connector.BANNER, device["serial"], client['description'], client['mac']))
 
         if client['description'] is None:                  # Description could be NoneType
@@ -188,15 +211,31 @@ class Connector(object):
         timespan = str(timespan)
         return self.query_api("/api/v0/devices/" + serial + "/clients?timespan=" + timespan)
 
+    def get_VLANS(self, network_id):
+        """
+        Return a list of VLANS for this network_id
+        'https://dashboard.meraki.com/api/v0/networks/[networkId]/vlans'
+        """
+        return self.query_api("/api/v0/networks/" + network_id + "/vlans")
+
+    def build_URI(self, URL):
+        "Format the URL for the request and return"
+        header = self.HEADER
+        header["X-Cisco-Meraki-API-Key"] = self.get_configuration("Meraki-API-Key")
+        return "https://" + self.get_configuration("dashboard") + URL
+
+    def build_header(self):
+        "Add the API key to the header and return"
+        header = self.HEADER
+        header["X-Cisco-Meraki-API-Key"] = self.get_configuration("Meraki-API-Key")
+        return header
+
     def query_api(self, URL):
         """
         Method to query and return results, return an empty list if there are connection error(s).
         """
-        header = self.HEADER
-        header["X-Cisco-Meraki-API-Key"] = self.get_configuration("Meraki-API-Key")
-        URI = "https://" + self.get_configuration("dashboard") + URL
         try:
-            r = requests.get(URI, headers=header, verify=False)
+            r = requests.get(self.build_URI(URL), headers=self.build_header(), verify=False)
         except requests.ConnectionError as e:
             self.set_status_save_progress(Connector.APP_ERROR, str(e))
             return []
@@ -207,3 +246,23 @@ class Connector(object):
         except ValueError:                                 # If you get a 404 error, throws a ValueError exception
             return []
 
+    def POST(self, URL, body):
+        """
+        Method to POST (Add) to the configuration. Return empty dictionary if there are connection errors.
+        The body is a dictionary, which is converted to json.
+
+        Sample return values are:
+        {u'errors': [u'Validation failed: Vlan has already been taken']}
+        {u'applianceIp': u'192.168.64.1', u'id': 64, u'name': u'VLAN64', u'networkId': u'L_6228460', u'subnet': u'192.168.64.0/24'}
+        """
+        try:
+            r = requests.post(self.build_URI(URL), headers=self.build_header(), data=json.dumps(body), verify=False)
+        except requests.ConnectionError as e:
+            self.set_status_save_progress(Connector.APP_ERROR, str(e))
+            return dict()
+        self.status_codes.append(r.status_code)
+
+        try:
+            return r.json()
+        except ValueError:
+            return dict()
