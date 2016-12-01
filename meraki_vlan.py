@@ -36,12 +36,12 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
             dashboard=dict(required=True),
-            organization=dict(required=True)
+            organization=dict(required=True),
             api_key=dict(required=True),
-            network=dict(required=True),
             action=dict(required=False, default="add", choices=["add", "delete", "update"]),
             network=dict(required=True),
-            vlan=dict(required=True),
+            name=dict(required=True),
+            id=dict(required=True),
             applianceIp=dict(required=True),
             subnet=dict(required=True)
         )
@@ -49,25 +49,25 @@ def main():
 
 
     import Meraki_Connector as mc
-    session = mc.Connector(API_key=module.param["api_key"])
+    session = mc.Connector(API_key=module.params["api_key"])
 
     # Get Organization ID 
     orgs = session.get_org_ids()
-    org_id = session.get_org_id(orgs, module.param["organization"])
+    org_id = session.get_org_id(orgs, module.params["organization"])
     if not org_id:
-        module.fail_json(msg="Organization %s, not found." %  module.param["organization"])
+        module.fail_json(msg="Organization %s, not found." %  module.params["organization"])
 
     # Get Network ID
     networks = session.get_networks(org_id)
-    network_id = session.get_network_id(networks, module.param["network"])
+    network_id = session.get_network_id(networks, module.params["network"])
     if not network_id:
-        module.fail_json(msg="Network %s, not found." %  module.param["network"])
+        module.fail_json(msg="Network %s, not found." %  module.params["network"])
 
     # Add Logic, NOTE: create case structure and move to separate function when delete and update implemented
-    if module.param["action"] == "add":
+    if module.params["action"] == "add":
         body = {'applianceIp': None, 'id': None, 'name': None, 'subnet': None}
         for key in body.keys():
-            body[key] = module.param[key]
+            body[key] = module.params[key]
         result = session.POST("/api/v0/networks/" + network_id + "/vlans", body)
     else:
         module.fail_json(msg="Delete and Update not implemented")
