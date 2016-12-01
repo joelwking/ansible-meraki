@@ -55,6 +55,7 @@
   - name: network management
     meraki_networks:
       dashboard: "{{dashboard}}"
+      organization: "{{organization}}"
       api_key: "{{password}}"
       organization: "{{org_id}}"           # Organization ID
       network: networkid                   # Needed for network management
@@ -80,6 +81,7 @@
   - name: device management
     meraki_devices:
       dashboard: "{{dashboard}}"
+      organization: "{{organization}}"
       api_key: "{{password}}"
       network: networkid                   # Needed for device management
       action: claim                        # claim, update, remove
@@ -93,12 +95,13 @@
   - name: manage vlans
     meraki_vlan:
       dashboard: "{{dashboard}}"
+      organization: "{{organization}}"
       api_key: "{{password}}"
       network: networkid                   # Networkid
       action: add                          # add, delete update
       network: SWISSWOOD                   # Name of the network
       vlan: 1492                           # VLAN number
-      applianceip: 192.0.2.1               # Default Gateway IP address
+      applianceIp: 192.0.2.1               # Default Gateway IP address
       subnet: 192.0.2.0/24                 # Layer 3 network address of the VLAN
 
   #

@@ -5,6 +5,7 @@
 
      Revision history:
      6 September 2016  |  1.0 Initial release. 
+     30 November 2016  |  1.1 added additional methods for Programming Meraki APIs VT call
 
      module: Connector.py
      author: Joel W. King, World Wide Technology
@@ -20,19 +21,20 @@ import requests
 import httplib
 
 # ========================================================
-# AppConnector
+# Meraki_Connector
 # ========================================================
 
 class Connector(object):
-
+    " Class variables, shared by all instances of the class "
     BANNER = "MERAKI"
     APP_ERROR = 0
     APP_SUCCESS = 1
+    successful_POST_status =  (201,)
 
 
     def __init__(self, API_key=None, dashboard="dashboard.meraki.com"):
         """
-        Instance variables
+        Instance variables, belongs only to the current instance of a class.
         """
         self.HEADER = {"Content-Type": "application/json"}
         self.status_codes = []                             # List of all status codes   
@@ -60,7 +62,7 @@ class Connector(object):
         
 
     def debug_print(self, message):
-        "Not implemented"
+        "NOT IMPLEMENTED: Method, a function that is defined in a class definition."
         return None
 
     def set_status_save_progress(self, status, message):
