@@ -1,0 +1,34 @@
+#!/usr/bin/ansible-playbook
+---
+#
+#      Copyright (c) 2016 World Wide Technology, Inc.
+#      All rights reserved.
+#
+#      author: Joel W. King,  World Wide Technology
+#
+#
+- name: Meraki_VLAN 
+  hosts: meraki_dashboard 
+  gather_facts: no 
+
+  vars:
+     meraki:
+       network: "SWISSWOOD"  
+       organization: "WWT"
+
+  tasks:
+  - name: Decrypt the password file
+    include_vars: "./passwords.yml"
+
+  - name: manage vlans
+    meraki_vlan:
+      dashboard: "{{inventory_hostname}}"
+      organization: "{{meraki.organization}}"
+      api_key: "{{meraki_params.apikey}}" 
+      action: add                            # add, delete update
+      network: "{{meraki.network}}"          # Name of the network
+      id: "1492"                             # VLAN number
+      name: VLAN1492                         # VLAN name 
+      applianceIp: "192.0.2.1"               # Default Gateway IP address
+      subnet: "192.0.2.0/24"                 # Layer 3 network address of the VLAN
+
