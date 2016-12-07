@@ -6,8 +6,9 @@
      Revision history:
      6 September 2016  |  1.0 Initial release. 
      30 November 2016  |  1.1 added additional methods for Programming Meraki APIs VT call
+     6  December 2016  |  1.2 documentation update
 
-     module: Connector.py
+     module: Meraki_Connector.py
      author: Joel W. King, World Wide Technology
      short_description: Class to manage the connection to Meraki Cloud
 
