@@ -7,6 +7,7 @@
      6 September 2016  |  1.0 Initial release. 
      30 November 2016  |  1.1 added additional methods for Programming Meraki APIs VT call
      6  December 2016  |  1.2 documentation update
+     3  May      2017  |  1.8 - Meraki surveillance cameras - a device with no clients
 
      module: Meraki_Connector.py
      author: Joel W. King, World Wide Technology
@@ -178,15 +179,15 @@ class Connector(object):
         """
         Return a list of organization IDs for this account
         URI = "https://dashboard.meraki.com/api/v0/organizations"
-        return [{"id":530205,"name":"WWT"}]
+        return [{"id":123456,"name":"WWT"}]
         """
         return self.query_api("/api/v0/organizations")
 
     def get_networks(self, organization_id):
         """
         Return a list of network IDs for this organization
-        URI = "https://dashboard.meraki.com/api/v0/organizations/530205/networks"
-        return [{u'id': u'L_629378047925028460', u'name': u'SWISSWOOD', u'organizationId': u'530205', u'tags': u'',
+        URI = "https://dashboard.meraki.com/api/v0/organizations/123456/networks"
+        return [{u'id': u'L_62937804798460', u'name': u'SWISSWOOD', u'organizationId': u'123456', u'tags': u'',
                  u'timeZone': u'America/New_York',  u'type': u'combined'}]
         """
         return self.query_api("/api/v0/organizations/" + str(organization_id) + "/networks")
@@ -194,7 +195,7 @@ class Connector(object):
     def get_devices(self, network_id):
         """
         Return a list of devices in this network
-        URI = "https://dashboard.meraki.com/api/v0/networks/L_629378047925028460/devices"
+        URI = "https://dashboard.meraki.com/api/v0/networks/L_6293780028460/devices"
         return [{u'address': u'swisswood dr, Denton, NC 16713', u'lat': 34.9543899, u'lng': -77.721312,
                  u'mac': u'88:15:44:08:ad:08',  u'model': u'MX64',  u'name': u'SWISSWOOD-MX64', u'serial': u'Q2KN-R9P3-3U6X',
                  u'tags': u' recently-added ', u'wan1Ip': u'192.168.0.3', u'wan2Ip': None}]
@@ -243,6 +244,12 @@ class Connector(object):
             self.set_status_save_progress(Connector.APP_ERROR, str(e))
             return []
         self.status_codes.append(r.status_code)
+
+        if r.status_code in (httplib.OK,):
+            pass
+        else:
+            self.debug_print("%s QUERY_API url: %s status code: %s" % (Connector.BANNER, URL, r.status_code))
+            return []
 
         try:
             return r.json()
