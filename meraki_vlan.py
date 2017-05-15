@@ -1,21 +1,21 @@
 #!/usr/bin/python
 #
 """
-
-     Copyright (c) 2016 World Wide Technology, Inc.
+     Copyright (c) 2017 World Wide Technology, Inc.
      All rights reserved.
 
      Revision history:
 
      7 December 2016  |  1.0 - initial release
+     15 May 2017      |  1.1 - DevNet Create updates
 
 """
 DOCUMENTATION = '''
 ---
 
 module: meraki_vlan
-author: Joel W. King, World Wide Technology
-version_added: "1.0"
+author: Joel W. King, (@joelwking) World Wide Technology
+version_added: "2.0"
 short_description: Manage VLANs on Meraki Networks
 
 description:
@@ -87,8 +87,11 @@ EXAMPLES = '''
 
 '''
 
+
 def main():
-    "# http://blog.toast38coza.me/custom-ansible-module-hello-world/"
+    """ For a good introduction for custom Ansible module development,
+        see http://blog.toast38coza.me/custom-ansible-module-hello-world/
+    """
     module = AnsibleModule(
         argument_spec=dict(
             dashboard=dict(required=True),
@@ -103,7 +106,6 @@ def main():
         )
     )
 
-
     try:
         import Meraki_Connector as mc
     except ImportError:
@@ -111,19 +113,26 @@ def main():
 
     session = mc.Connector(API_key=module.params["api_key"])
 
-    # Get Organization ID 
+    ####
+    # import pydevd
+    # pydevd.settrace('192.168.56.1', port=54654, stdoutToServer=True, stderrToServer=True)
+    ####
+
+    # Get Organization ID
     orgs = session.get_org_ids()
     org_id = session.get_org_id(orgs, module.params["organization"])
     if not org_id:
-        module.fail_json(msg="Organization %s, not found." %  module.params["organization"])
+        module.fail_json(msg="Organization %s, not found." % module.params["organization"])
 
     # Get Network ID
     networks = session.get_networks(org_id)
     network_id = session.get_network_id(networks, module.params["network"])
     if not network_id:
-        module.fail_json(msg="Network %s, not found." %  module.params["network"])
+        module.fail_json(msg="Network %s, not found." % module.params["network"])
 
-    # Add Logic, NOTE: create case structure and move to separate function when delete and update implemented
+    # ADD code HERE, only a basic logic to 'add' is implemented.
+    # Modify logic, add functions, etc. to implement idempotency,
+    # update and delete logic
     if module.params["action"] == "add":
         body = {'applianceIp': None, 'id': None, 'name': None, 'subnet': None}
         for key in body.keys():
@@ -132,14 +141,19 @@ def main():
     else:
         module.fail_json(msg="Delete and Update not implemented")
 
+    ####
+    # pydevd.stoptrace()
+    ####
+
     # Wrap up
     status_code = session.get_last_status_code()
     if status_code in mc.Connector.successful_POST_status:
-       module.exit_json(changed=True, status_code=status_code, result=result)
+        module.exit_json(changed=True, status_code=status_code, result=result)
     else:
-       module.fail_json(msg="%s %s" % (status_code, result))
+        module.fail_json(msg="%s %s" % (status_code, result))
 
-
-from ansible.module_utils.basic import *
+try:
+    from ansible_hacking import AnsibleModule              # Test
+except ImportError:
+    from ansible.module_utils.basic import *               # Production
 main()
-#
