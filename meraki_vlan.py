@@ -8,6 +8,7 @@
 
      7 December 2016  |  1.0 - initial release
      15 May 2017      |  1.1 - DevNet Create updates
+     22 May 2017      |  1.2 - mod to pydev.settrace
 
 """
 DOCUMENTATION = '''
@@ -115,7 +116,7 @@ def main():
 
     ####
     # import pydevd
-    # pydevd.settrace('192.168.56.1', port=54654, stdoutToServer=True, stderrToServer=True)
+    # pydevd.settrace('192.168.56.1', stdoutToServer=True, stderrToServer=True)
     ####
 
     # Get Organization ID
